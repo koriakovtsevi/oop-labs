@@ -45,6 +45,14 @@ protected:
     string name;  // protected: доступно также классам-наследникам.
 
 public:
+	virtual string classname() const {
+	    return "Shape";
+	}
+
+	virtual bool isA(const string& className) const {
+ 	   return className == "Shape";
+	}
+
     // Конструктор без параметров.
     Shape() : id(0), name("Фигура") {
         cout << "Shape: конструктор без параметров\n";
@@ -87,6 +95,14 @@ private:
     double radius;
 
 public:
+	string classname() const override {
+  	  return "Circle";
+	}
+
+	bool isA(const string& className) const override {
+   	 return className == "Circle" || Shape::isA(className);
+	}
+
     Circle() : Shape(), radius(1.0) {
         cout << "Circle: конструктор без параметров\n";
     }
@@ -194,6 +210,26 @@ int main() {
 	Circle* circlePointer = &anotherCircle;
 	circlePointer->identify();
 	circlePointer->describe();
+	cout << "\n=== Проверка типа объекта ===\n";
+
+	cout << "Класс объекта: "
+    	 << shapePointer->classname() << '\n';
+
+	cout << "Это Circle? "
+     	<< (shapePointer->isA("Circle") ? "Да" : "Нет") << '\n';
+
+	cout << "Это Shape? "
+   	  << (shapePointer->isA("Shape") ? "Да" : "Нет") << '\n';
+
+	Circle* checkedCircle = dynamic_cast<Circle*>(shapePointer);
+
+	if (checkedCircle != nullptr) {
+   	 cout << "dynamic_cast успешен\n";
+   	 checkedCircle->showCircle();
+	} else {
+ 	   cout << "Объект не является Circle\n";
+	}
+
 	cout << "\n=== Проверка виртуального деструктора ===\n";
 
 	Shape* dynamicShape = new Circle(7.0);
