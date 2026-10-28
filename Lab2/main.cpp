@@ -101,6 +101,48 @@ public:
     }
 };
 
+// Класс содержит объект Point напрямую.
+class PointHolder {
+private:
+    Point point;
+
+public:
+    PointHolder() : point(1, 2) {
+        cout << "PointHolder: конструктор\n";
+    }
+
+    void show() const {
+        cout << "Точка внутри PointHolder:\n";
+        point.show();
+    }
+
+    ~PointHolder() {
+        cout << "PointHolder: деструктор\n";
+    }
+};
+
+// Класс содержит указатель на отдельный объект Point.
+class DynamicPointHolder {
+private:
+    Point* point;
+
+public:
+    DynamicPointHolder() : point(new Point(5, 6)) {
+        cout << "DynamicPointHolder: конструктор\n";
+    }
+
+    void show() const {
+        cout << "Точка внутри DynamicPointHolder:\n";
+        point->show();
+    }
+
+    ~DynamicPointHolder() {
+        cout << "DynamicPointHolder: деструктор\n";
+        delete point;
+        point = nullptr;
+    }
+};
+
 int main() {
     cout << "=== 1. Создание объектов Point ===\n";
     Point first;
@@ -132,6 +174,14 @@ int main() {
     // Метод showCircle() здесь вызвать нельзя:
     // тип указателя Shape*, а не Circle*.
     // Сам объект anotherCircle уничтожится автоматически при выходе из main.
+
+	cout << "\n=== Композиция: обычный объект ===\n";
+	PointHolder holder;
+	holder.show();
+
+	cout << "\n=== Композиция: указатель ===\n";
+	DynamicPointHolder dynamicHolder;
+	dynamicHolder.show();
 
     cout << "\n=== Конец main ===\n";
     return 0;
