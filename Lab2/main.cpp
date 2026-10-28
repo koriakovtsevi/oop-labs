@@ -66,7 +66,7 @@ public:
         cout << "Фигура: " << name << ", номер: " << id << '\n';
     }
 
-    ~Shape() {
+    virtual ~Shape() {
         cout << "Shape: деструктор (" << name << ")\n";
     }
 };
