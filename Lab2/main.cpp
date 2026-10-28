@@ -1,4 +1,3 @@
-
 #include <iostream>
 
 using namespace std;
@@ -6,37 +5,30 @@ using namespace std;
 // Класс точки на плоскости.
 class Point {
 private:
-    // Приватные поля доступны только внутри класса.
     int x;
     int y;
 
 public:
-    // Конструктор без параметров.
     Point() : x(0), y(0) {
         cout << "Конструктор без параметров\n";
     }
 
-    // Конструктор с параметрами.
     Point(int xValue, int yValue) : x(xValue), y(yValue) {
         cout << "Конструктор с параметрами\n";
     }
 
-    // Конструктор копирования.
     Point(const Point& other) : x(other.x), y(other.y) {
         cout << "Конструктор копирования\n";
     }
 
-    // Деструктор вызывается при уничтожении объекта.
     ~Point() {
         cout << "Деструктор точки (" << x << ", " << y << ")\n";
     }
 
-    // Метод выводит координаты точки.
     void show() const {
         cout << "Координаты: (" << x << ", " << y << ")\n";
     }
 
-    // Метод изменяет координаты.
     void move(int dx, int dy) {
         x += dx;
         y += dy;
@@ -44,36 +36,103 @@ public:
     }
 };
 
-int main() {
-    cout << "=== Создание обычных объектов ===\n";
+// Базовый класс геометрической фигуры.
+class Shape {
+private:
+    int id;  // private: доступно только внутри Shape.
 
-    // Объект создаётся с конструктором без параметров.
+protected:
+    string name;  // protected: доступно также классам-наследникам.
+
+public:
+    // Конструктор без параметров.
+    Shape() : id(0), name("Фигура") {
+        cout << "Shape: конструктор без параметров\n";
+    }
+
+    // Конструктор с параметрами.
+    Shape(int idValue, const string& nameValue)
+        : id(idValue), name(nameValue) {
+        cout << "Shape: конструктор с параметрами\n";
+    }
+
+    // Конструктор копирования.
+    Shape(const Shape& other) : id(other.id), name(other.name) {
+        cout << "Shape: конструктор копирования\n";
+    }
+
+    // Обычный, пока не виртуальный, метод.
+    void showInfo() const {
+        cout << "Фигура: " << name << ", номер: " << id << '\n';
+    }
+
+    ~Shape() {
+        cout << "Shape: деструктор (" << name << ")\n";
+    }
+};
+
+// Класс Circle наследуется от Shape.
+class Circle : public Shape {
+private:
+    double radius;
+
+public:
+    Circle() : Shape(), radius(1.0) {
+        cout << "Circle: конструктор без параметров\n";
+    }
+
+    Circle(double radiusValue)
+        : Shape(2, "Круг"), radius(radiusValue) {
+        cout << "Circle: конструктор с параметрами\n";
+    }
+
+    Circle(const Circle& other)
+        : Shape(other), radius(other.radius) {
+        cout << "Circle: конструктор копирования\n";
+    }
+
+    void showCircle() const {
+        // name доступно, потому что оно объявлено как protected.
+        cout << "Это " << name << ", радиус: " << radius << '\n';
+    }
+
+    ~Circle() {
+        cout << "Circle: деструктор\n";
+    }
+};
+
+int main() {
+    cout << "=== 1. Создание объектов Point ===\n";
     Point first;
     first.show();
 
-    // Объект создаётся с конструктором с параметрами.
     Point second(3, 5);
     second.show();
 
-    // Создаётся копия другого объекта.
     Point third(second);
     third.show();
 
-    cout << "\n=== Вызов метода ===\n";
-    second.move(2, 4);
-    second.show();
+    cout << "\n=== 2. Наследование: создание круга ===\n";
+    Circle circle(4.5);
+    circle.showInfo();
+    circle.showCircle();
 
-    cout << "\n=== Динамический объект ===\n";
+    cout << "\n=== 3. Конструктор копирования круга ===\n";
+    Circle copiedCircle(circle);
+    copiedCircle.showInfo();
+    copiedCircle.showCircle();
 
-    // new создаёт объект в динамической памяти.
-    Point* dynamicPoint = new Point(10, 20);
-    dynamicPoint->show();
+    cout << "\n=== 4. Указатель на базовый класс ===\n";
+    Circle anotherCircle(7.0);
+    Shape* shapePointer = &anotherCircle;
 
-    // delete уничтожает динамический объект.
-    delete dynamicPoint;
-    dynamicPoint = nullptr;
+    // Через указатель Shape доступны методы класса Shape.
+    shapePointer->showInfo();
 
-    cout << "\n=== Завершение программы ===\n";
+    // Метод showCircle() здесь вызвать нельзя:
+    // тип указателя Shape*, а не Circle*.
+    // Сам объект anotherCircle уничтожится автоматически при выходе из main.
 
+    cout << "\n=== Конец main ===\n";
     return 0;
 }
