@@ -4,7 +4,7 @@
 using namespace std;
 
 // ============================================================
-// Класс Point: пример полей, методов и разных конструкторов.
+// Point: поля, методы и разные конструкторы.
 // ============================================================
 class Point {
 private:
@@ -12,17 +12,14 @@ private:
     int y;
 
 public:
-    // Конструктор без параметров.
     Point() : x(0), y(0) {
         cout << "Point: конструктор без параметров\n";
     }
 
-    // Конструктор с параметрами.
     Point(int xValue, int yValue) : x(xValue), y(yValue) {
         cout << "Point: конструктор с параметрами\n";
     }
 
-    // Конструктор копирования.
     Point(const Point& other) : x(other.x), y(other.y) {
         cout << "Point: конструктор копирования\n";
     }
@@ -43,15 +40,14 @@ public:
 };
 
 // ============================================================
-// Базовый класс Shape: демонстрация private/protected/public,
-// обычных и виртуальных методов, наследования и dynamic_cast.
+// Shape и Circle: наследование, доступность, виртуальные методы.
 // ============================================================
 class Shape {
 private:
-    int id;  // Доступно только внутри Shape.
+    int id;
 
 protected:
-    string name;  // Доступно в Shape и его наследниках.
+    string name;
 
 public:
     Shape() : id(0), name("Фигура") {
@@ -71,12 +67,10 @@ public:
         cout << "Фигура: " << name << ", номер: " << id << '\n';
     }
 
-    // Обычный метод: при вызове через Shape* выбирается Shape::identify.
     void identify() const {
         cout << "Обычный метод класса Shape\n";
     }
 
-    // Виртуальный метод: при вызове через Shape* выбирается метод объекта.
     virtual void describe() const {
         cout << "Виртуальный метод класса Shape\n";
     }
@@ -89,16 +83,11 @@ public:
         return className == "Shape";
     }
 
-    // Виртуальный деструктор необходим для корректного удаления наследника
-    // через указатель на базовый класс.
     virtual ~Shape() {
         cout << "Shape: деструктор (" << name << ")\n";
     }
 };
 
-// ============================================================
-// Circle — производный класс. Наследует публичные методы Shape.
-// ============================================================
 class Circle : public Shape {
 private:
     double radius;
@@ -119,7 +108,6 @@ public:
     }
 
     void showCircle() const {
-        // name — protected, поэтому наследник может его использовать.
         cout << "Это " << name << ", радиус: " << radius << '\n';
     }
 
@@ -145,7 +133,7 @@ public:
 };
 
 // ============================================================
-// Композиция № 1: Point хранится внутри PointHolder как объект.
+// Композиция объектов.
 // ============================================================
 class PointHolder {
 private:
@@ -163,13 +151,9 @@ public:
 
     ~PointHolder() {
         cout << "PointHolder: деструктор\n";
-        // point будет уничтожен автоматически после тела деструктора.
     }
 };
 
-// ============================================================
-// Композиция № 2: PointHolderPointer владеет динамическим Point.
-// ============================================================
 class PointHolderPointer {
 private:
     Point* point;
@@ -179,8 +163,6 @@ public:
         cout << "PointHolderPointer: конструктор\n";
     }
 
-    // Запрещаем копирование, чтобы два владельца случайно
-    // не удалили один и тот же указатель.
     PointHolderPointer(const PointHolderPointer&) = delete;
     PointHolderPointer& operator=(const PointHolderPointer&) = delete;
 
@@ -196,17 +178,132 @@ public:
     }
 };
 
+// ============================================================
+// Base и Desc: конструкторы без параметров, с указателем и ссылкой.
+// ============================================================
+class Base {
+protected:
+    int value;
+
+public:
+    Base() : value(1) {
+        cout << "Base(): конструктор без параметров\n";
+    }
+
+    explicit Base(int v) : value(v) {
+        cout << "Base(int): конструктор с параметром\n";
+    }
+
+    Base(Base* other) : value(other ? other->value : 0) {
+        cout << "Base(Base*): конструктор с указателем\n";
+    }
+
+    Base(Base& other) : value(other.value) {
+        cout << "Base(Base&): конструктор с ссылкой\n";
+    }
+
+    virtual ~Base() {
+        cout << "~Base(): деструктор, value=" << value << '\n';
+    }
+
+    virtual void show() const {
+        cout << "Base::show(), value=" << value << '\n';
+    }
+};
+
+class Desc : public Base {
+public:
+    Desc() : Base() {
+        value = 2;
+        cout << "Desc(): конструктор без параметров\n";
+    }
+
+    explicit Desc(int v) : Base(v) {
+        cout << "Desc(int): конструктор с параметром\n";
+    }
+
+    Desc(Desc* other) : Base(static_cast<Base*>(other)) {
+        cout << "Desc(Desc*): конструктор с указателем\n";
+    }
+
+    Desc(Desc& other) : Base(static_cast<Base&>(other)) {
+        cout << "Desc(Desc&): конструктор с ссылкой\n";
+    }
+
+    ~Desc() override {
+        cout << "~Desc(): деструктор\n";
+    }
+
+    void show() const override {
+        cout << "Desc::show(), value=" << value << '\n';
+    }
+};
+
+// Отдельные функции передачи объектов: значение, указатель, ссылка.
+void passByValue(Base obj) {
+    cout << "Внутри passByValue: ";
+    obj.show();
+}
+
+void passByPointer(Base* obj) {
+    cout << "Внутри passByPointer: ";
+    if (obj != nullptr) {
+        obj->show();
+    }
+}
+
+void passByReference(Base& obj) {
+    cout << "Внутри passByReference: ";
+    obj.show();
+}
+
+// Функции 1–3 возвращают локальный статический объект по значению,
+// указателю и ссылке соответственно.
+Base returnStaticByValue() {
+    static Base obj(11);
+    cout << "returnStaticByValue: возвращаем копию статического объекта\n";
+    return obj;
+}
+
+Base* returnStaticByPointer() {
+    static Base obj(12);
+    cout << "returnStaticByPointer: возвращаем адрес статического объекта\n";
+    return &obj;
+}
+
+Base& returnStaticByReference() {
+    static Base obj(13);
+    cout << "returnStaticByReference: возвращаем ссылку на статический объект\n";
+    return obj;
+}
+
+// Функции 4–6 используют динамическое создание через new.
+Base returnDynamicByValue() {
+    Base* obj = new Base(21);
+    cout << "returnDynamicByValue: копируем объект в возвращаемое значение\n";
+    Base result(*obj);
+    delete obj; // Удаляем временный динамический объект, утечки нет.
+    return result;
+}
+
+Base* returnDynamicByPointer() {
+    cout << "returnDynamicByPointer: возвращаем динамический указатель\n";
+    return new Base(22); // Получатель обязан выполнить delete.
+}
+
+Base& returnDynamicByReference() {
+    cout << "returnDynamicByReference: возвращаем ссылку на динамический объект\n";
+    return *(new Base(23)); // Получатель обязан удалить адрес &result.
+}
+
 int main() {
     cout << "=== 1. Объекты Point ===\n";
     Point first;
     first.show();
-
     Point second(3, 5);
     second.show();
-
     Point third(second);
     third.show();
-
     second.move(2, 4);
     second.show();
 
@@ -215,18 +312,16 @@ int main() {
     circle.showInfo();
     circle.showCircle();
 
-    cout << "\n=== 3. Конструктор копирования наследника ===\n";
+    cout << "\n=== 3. Конструктор копирования Circle ===\n";
     Circle anotherCircle(circle);
     anotherCircle.showInfo();
     anotherCircle.showCircle();
 
     cout << "\n=== 4. Обычные и виртуальные методы ===\n";
     Shape* shapePointer = &anotherCircle;
-
     cout << "Через Shape*:\n";
     shapePointer->identify();
     shapePointer->describe();
-
     cout << "Через Circle*:\n";
     Circle* circlePointer = &anotherCircle;
     circlePointer->identify();
@@ -234,38 +329,69 @@ int main() {
 
     cout << "\n=== 5. Проверка типа и dynamic_cast ===\n";
     cout << "Фактический класс: " << shapePointer->classname() << '\n';
-    cout << "Это Circle? "
-         << (shapePointer->isA("Circle") ? "Да" : "Нет") << '\n';
-    cout << "Это Shape? "
-         << (shapePointer->isA("Shape") ? "Да" : "Нет") << '\n';
-
+    cout << "Это Circle? " << (shapePointer->isA("Circle") ? "Да" : "Нет") << '\n';
+    cout << "Это Shape? " << (shapePointer->isA("Shape") ? "Да" : "Нет") << '\n';
     Circle* checkedCircle = dynamic_cast<Circle*>(shapePointer);
     if (checkedCircle != nullptr) {
         cout << "dynamic_cast успешен\n";
         checkedCircle->showCircle();
-    } else {
-        cout << "dynamic_cast не выполнен\n";
     }
 
-    cout << "\n=== 6. Динамический объект через базовый указатель ===\n";
+    cout << "\n=== 6. Виртуальный деструктор ===\n";
     Shape* dynamicShape = new Circle(7.0);
     dynamicShape->showInfo();
     dynamicShape->describe();
-    delete dynamicShape;  // Сначала Circle, затем Shape.
+    delete dynamicShape;
 
-    cout << "\n=== 7. Композиция: объект внутри объекта ===\n";
+    cout << "\n=== 7. Композиция: объект ===\n";
     {
         PointHolder holder;
         holder.show();
-        cout << "Сейчас блок закончится, и holder будет уничтожен.\n";
     }
 
-    cout << "\n=== 8. Композиция: указатель на объект ===\n";
+    cout << "\n=== 8. Композиция: указатель ===\n";
     {
         PointHolderPointer holderPointer;
         holderPointer.show();
-        cout << "Сейчас блок закончится, и динамический Point будет удалён.\n";
     }
+
+    cout << "\n=== 9. Передача Base и Desc в функции ===\n";
+    Base baseObject;
+    Desc descObject(30);
+
+    cout << "-- Base по значению: объект копируется --\n";
+    passByValue(baseObject);
+    passByValue(descObject); // Срезка: параметр Base содержит только базовую часть.
+
+    cout << "-- По указателю: копирования нет --\n";
+    passByPointer(&baseObject);
+    passByPointer(&descObject); // Виртуальный show() вызовет Desc::show().
+
+    cout << "-- По ссылке: копирования нет --\n";
+    passByReference(baseObject);
+    passByReference(descObject); // Виртуальный show() вызовет Desc::show().
+
+    cout << "\n=== 10. Возврат статических объектов ===\n";
+    Base value1 = returnStaticByValue();
+    value1.show();
+
+    Base* pointer2 = returnStaticByPointer();
+    pointer2->show(); // Не удаляем: объект статический.
+
+    Base& reference3 = returnStaticByReference();
+    reference3.show(); // Не удаляем: объект статический.
+
+    cout << "\n=== 11. Возврат динамических объектов ===\n";
+    Base value4 = returnDynamicByValue();
+    value4.show();
+
+    Base* pointer5 = returnDynamicByPointer();
+    pointer5->show();
+    delete pointer5;
+
+    Base& reference6 = returnDynamicByReference();
+    reference6.show();
+    delete &reference6; // Объект создан через new, поэтому удаляем его.
 
     cout << "\n=== Конец main ===\n";
     return 0;
