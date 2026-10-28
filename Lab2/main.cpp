@@ -1,108 +1,109 @@
 #include <iostream>
+#include <string>
 
 using namespace std;
 
-// Класс точки на плоскости.
+// ============================================================
+// Класс Point: пример полей, методов и разных конструкторов.
+// ============================================================
 class Point {
 private:
     int x;
     int y;
 
 public:
+    // Конструктор без параметров.
     Point() : x(0), y(0) {
-        cout << "Конструктор без параметров\n";
+        cout << "Point: конструктор без параметров\n";
     }
 
+    // Конструктор с параметрами.
     Point(int xValue, int yValue) : x(xValue), y(yValue) {
-        cout << "Конструктор с параметрами\n";
+        cout << "Point: конструктор с параметрами\n";
     }
 
+    // Конструктор копирования.
     Point(const Point& other) : x(other.x), y(other.y) {
-        cout << "Конструктор копирования\n";
+        cout << "Point: конструктор копирования\n";
     }
 
     ~Point() {
-        cout << "Деструктор точки (" << x << ", " << y << ")\n";
+        cout << "Point: деструктор (" << x << ", " << y << ")\n";
     }
 
     void show() const {
-        cout << "Координаты: (" << x << ", " << y << ")\n";
+        cout << "Координаты точки: (" << x << ", " << y << ")\n";
     }
 
     void move(int dx, int dy) {
         x += dx;
         y += dy;
-        cout << "Точка перемещена\n";
+        cout << "Point: точка перемещена\n";
     }
 };
 
-// Базовый класс геометрической фигуры.
+// ============================================================
+// Базовый класс Shape: демонстрация private/protected/public,
+// обычных и виртуальных методов, наследования и dynamic_cast.
+// ============================================================
 class Shape {
 private:
-    int id;  // private: доступно только внутри Shape.
+    int id;  // Доступно только внутри Shape.
 
 protected:
-    string name;  // protected: доступно также классам-наследникам.
+    string name;  // Доступно в Shape и его наследниках.
 
 public:
-	virtual string classname() const {
-	    return "Shape";
-	}
-
-	virtual bool isA(const string& className) const {
- 	   return className == "Shape";
-	}
-
-    // Конструктор без параметров.
     Shape() : id(0), name("Фигура") {
         cout << "Shape: конструктор без параметров\n";
     }
 
-    // Конструктор с параметрами.
     Shape(int idValue, const string& nameValue)
         : id(idValue), name(nameValue) {
         cout << "Shape: конструктор с параметрами\n";
     }
 
-    // Конструктор копирования.
     Shape(const Shape& other) : id(other.id), name(other.name) {
         cout << "Shape: конструктор копирования\n";
     }
 
-    // Обычный, пока не виртуальный, метод.
     void showInfo() const {
         cout << "Фигура: " << name << ", номер: " << id << '\n';
     }
 
-	// Обычный метод — выбор зависит от типа указателя.
-	void identify() const {
-   	 cout << "Обычный метод класса Shape\n";
-	}
+    // Обычный метод: при вызове через Shape* выбирается Shape::identify.
+    void identify() const {
+        cout << "Обычный метод класса Shape\n";
+    }
 
-	// Виртуальный метод — позволяет вызвать версию наследника.
-	virtual void describe() const {
-  	  cout << "Виртуальный метод класса Shape\n";
-	}
+    // Виртуальный метод: при вызове через Shape* выбирается метод объекта.
+    virtual void describe() const {
+        cout << "Виртуальный метод класса Shape\n";
+    }
 
+    virtual string classname() const {
+        return "Shape";
+    }
+
+    virtual bool isA(const string& className) const {
+        return className == "Shape";
+    }
+
+    // Виртуальный деструктор необходим для корректного удаления наследника
+    // через указатель на базовый класс.
     virtual ~Shape() {
         cout << "Shape: деструктор (" << name << ")\n";
     }
 };
 
-// Класс Circle наследуется от Shape.
+// ============================================================
+// Circle — производный класс. Наследует публичные методы Shape.
+// ============================================================
 class Circle : public Shape {
 private:
     double radius;
 
 public:
-	string classname() const override {
-  	  return "Circle";
-	}
-
-	bool isA(const string& className) const override {
-   	 return className == "Circle" || Shape::isA(className);
-	}
-
     Circle() : Shape(), radius(1.0) {
         cout << "Circle: конструктор без параметров\n";
     }
@@ -118,24 +119,34 @@ public:
     }
 
     void showCircle() const {
-        // name доступно, потому что оно объявлено как protected.
+        // name — protected, поэтому наследник может его использовать.
         cout << "Это " << name << ", радиус: " << radius << '\n';
     }
-	// Метод с таким же именем, но без virtual в базовом классе.
-	void identify() const {
-  	  cout << "Обычный метод класса Circle\n";
-	}
 
-	// Переопределяем виртуальный метод базового класса.
-	void describe() const override {
- 	   cout << "Виртуальный метод класса Circle\n";
-	}
-    ~Circle() {
+    void identify() const {
+        cout << "Обычный метод класса Circle\n";
+    }
+
+    void describe() const override {
+        cout << "Виртуальный метод класса Circle\n";
+    }
+
+    string classname() const override {
+        return "Circle";
+    }
+
+    bool isA(const string& className) const override {
+        return className == "Circle" || Shape::isA(className);
+    }
+
+    ~Circle() override {
         cout << "Circle: деструктор\n";
     }
 };
 
-// Класс содержит объект Point напрямую.
+// ============================================================
+// Композиция № 1: Point хранится внутри PointHolder как объект.
+// ============================================================
 class PointHolder {
 private:
     Point point;
@@ -146,39 +157,47 @@ public:
     }
 
     void show() const {
-        cout << "Точка внутри PointHolder:\n";
+        cout << "Point внутри PointHolder: ";
         point.show();
     }
 
     ~PointHolder() {
         cout << "PointHolder: деструктор\n";
+        // point будет уничтожен автоматически после тела деструктора.
     }
 };
 
-// Класс содержит указатель на отдельный объект Point.
-class DynamicPointHolder {
+// ============================================================
+// Композиция № 2: PointHolderPointer владеет динамическим Point.
+// ============================================================
+class PointHolderPointer {
 private:
     Point* point;
 
 public:
-    DynamicPointHolder() : point(new Point(5, 6)) {
-        cout << "DynamicPointHolder: конструктор\n";
+    PointHolderPointer() : point(new Point(5, 6)) {
+        cout << "PointHolderPointer: конструктор\n";
     }
 
+    // Запрещаем копирование, чтобы два владельца случайно
+    // не удалили один и тот же указатель.
+    PointHolderPointer(const PointHolderPointer&) = delete;
+    PointHolderPointer& operator=(const PointHolderPointer&) = delete;
+
     void show() const {
-        cout << "Точка внутри DynamicPointHolder:\n";
+        cout << "Point через указатель: ";
         point->show();
     }
 
-    ~DynamicPointHolder() {
-        cout << "DynamicPointHolder: деструктор\n";
+    ~PointHolderPointer() {
+        cout << "PointHolderPointer: деструктор\n";
         delete point;
         point = nullptr;
     }
 };
 
 int main() {
-    cout << "=== 1. Создание объектов Point ===\n";
+    cout << "=== 1. Объекты Point ===\n";
     Point first;
     first.show();
 
@@ -188,60 +207,65 @@ int main() {
     Point third(second);
     third.show();
 
-    cout << "\n=== 2. Наследование: создание круга ===\n";
+    second.move(2, 4);
+    second.show();
+
+    cout << "\n=== 2. Наследование и конструкторы ===\n";
     Circle circle(4.5);
     circle.showInfo();
     circle.showCircle();
 
-    cout << "\n=== 3. Конструктор копирования круга ===\n";
-    Circle copiedCircle(circle);
-    copiedCircle.showInfo();
-    copiedCircle.showCircle();
+    cout << "\n=== 3. Конструктор копирования наследника ===\n";
+    Circle anotherCircle(circle);
+    anotherCircle.showInfo();
+    anotherCircle.showCircle();
 
-    cout << "\n=== 4. Указатель на базовый класс ===\n";
-    Circle anotherCircle(7.0);
+    cout << "\n=== 4. Обычные и виртуальные методы ===\n";
     Shape* shapePointer = &anotherCircle;
 
-	cout << "\n--- Вызовы через Shape* ---\n";
-	shapePointer->identify();
-	shapePointer->describe();
+    cout << "Через Shape*:\n";
+    shapePointer->identify();
+    shapePointer->describe();
 
-	cout << "\n--- Вызовы через Circle* ---\n";
-	Circle* circlePointer = &anotherCircle;
-	circlePointer->identify();
-	circlePointer->describe();
-	cout << "\n=== Проверка типа объекта ===\n";
+    cout << "Через Circle*:\n";
+    Circle* circlePointer = &anotherCircle;
+    circlePointer->identify();
+    circlePointer->describe();
 
-	cout << "Класс объекта: "
-    	 << shapePointer->classname() << '\n';
+    cout << "\n=== 5. Проверка типа и dynamic_cast ===\n";
+    cout << "Фактический класс: " << shapePointer->classname() << '\n';
+    cout << "Это Circle? "
+         << (shapePointer->isA("Circle") ? "Да" : "Нет") << '\n';
+    cout << "Это Shape? "
+         << (shapePointer->isA("Shape") ? "Да" : "Нет") << '\n';
 
-	cout << "Это Circle? "
-     	<< (shapePointer->isA("Circle") ? "Да" : "Нет") << '\n';
+    Circle* checkedCircle = dynamic_cast<Circle*>(shapePointer);
+    if (checkedCircle != nullptr) {
+        cout << "dynamic_cast успешен\n";
+        checkedCircle->showCircle();
+    } else {
+        cout << "dynamic_cast не выполнен\n";
+    }
 
-	cout << "Это Shape? "
-   	  << (shapePointer->isA("Shape") ? "Да" : "Нет") << '\n';
+    cout << "\n=== 6. Динамический объект через базовый указатель ===\n";
+    Shape* dynamicShape = new Circle(7.0);
+    dynamicShape->showInfo();
+    dynamicShape->describe();
+    delete dynamicShape;  // Сначала Circle, затем Shape.
 
-	Circle* checkedCircle = dynamic_cast<Circle*>(shapePointer);
+    cout << "\n=== 7. Композиция: объект внутри объекта ===\n";
+    {
+        PointHolder holder;
+        holder.show();
+        cout << "Сейчас блок закончится, и holder будет уничтожен.\n";
+    }
 
-	if (checkedCircle != nullptr) {
-   	 cout << "dynamic_cast успешен\n";
-   	 checkedCircle->showCircle();
-	} else {
- 	   cout << "Объект не является Circle\n";
-	}
-
-	cout << "\n=== Проверка виртуального деструктора ===\n";
-
-	Shape* dynamicShape = new Circle(7.0);
-	delete dynamicShape;
-
-	cout << "\n=== Композиция: обычный объект ===\n";
-	PointHolder holder;
-	holder.show();
-
-	cout << "\n=== Композиция: указатель ===\n";
-	DynamicPointHolder dynamicHolder;
-	dynamicHolder.show();
+    cout << "\n=== 8. Композиция: указатель на объект ===\n";
+    {
+        PointHolderPointer holderPointer;
+        holderPointer.show();
+        cout << "Сейчас блок закончится, и динамический Point будет удалён.\n";
+    }
 
     cout << "\n=== Конец main ===\n";
     return 0;
