@@ -66,6 +66,16 @@ public:
         cout << "Фигура: " << name << ", номер: " << id << '\n';
     }
 
+	// Обычный метод — выбор зависит от типа указателя.
+	void identify() const {
+   	 cout << "Обычный метод класса Shape\n";
+	}
+
+	// Виртуальный метод — позволяет вызвать версию наследника.
+	virtual void describe() const {
+  	  cout << "Виртуальный метод класса Shape\n";
+	}
+
     virtual ~Shape() {
         cout << "Shape: деструктор (" << name << ")\n";
     }
@@ -95,7 +105,15 @@ public:
         // name доступно, потому что оно объявлено как protected.
         cout << "Это " << name << ", радиус: " << radius << '\n';
     }
+	// Метод с таким же именем, но без virtual в базовом классе.
+	void identify() const {
+  	  cout << "Обычный метод класса Circle\n";
+	}
 
+	// Переопределяем виртуальный метод базового класса.
+	void describe() const override {
+ 	   cout << "Виртуальный метод класса Circle\n";
+	}
     ~Circle() {
         cout << "Circle: деструктор\n";
     }
@@ -168,12 +186,18 @@ int main() {
     Circle anotherCircle(7.0);
     Shape* shapePointer = &anotherCircle;
 
-    // Через указатель Shape доступны методы класса Shape.
-    shapePointer->showInfo();
+	cout << "\n--- Вызовы через Shape* ---\n";
+	shapePointer->identify();
+	shapePointer->describe();
 
-    // Метод showCircle() здесь вызвать нельзя:
-    // тип указателя Shape*, а не Circle*.
-    // Сам объект anotherCircle уничтожится автоматически при выходе из main.
+	cout << "\n--- Вызовы через Circle* ---\n";
+	Circle* circlePointer = &anotherCircle;
+	circlePointer->identify();
+	circlePointer->describe();
+	cout << "\n=== Проверка виртуального деструктора ===\n";
+
+	Shape* dynamicShape = new Circle(7.0);
+	delete dynamicShape;
 
 	cout << "\n=== Композиция: обычный объект ===\n";
 	PointHolder holder;
